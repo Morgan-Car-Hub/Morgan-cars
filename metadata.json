@@ -1,0 +1,6 @@
+{
+  "name": "Morgan Car Hub",
+  "description": "Modern brand-new and inspected used cars with commercial video showcase, vehicle condition reports, and direct seller contact via WhatsApp, Telegram, and TikTok.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

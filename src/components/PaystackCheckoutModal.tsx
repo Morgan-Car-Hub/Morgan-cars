@@ -104,20 +104,26 @@ export function PaystackCheckoutModal({
     setCopiedWire(false);
 
     fetch('/api/paystack/config')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { configured?: boolean } | null) => {
+      .then(async (res) => {
+        const isJson = res.headers.get('content-type')?.includes('application/json');
+        if (!res.ok || !isJson) return null;
+        return (await res.json()) as { configured?: boolean };
+      })
+      .then((data) => {
         if (data && typeof data.configured === 'boolean') {
           setServerConfigured(data.configured);
         }
       })
       .catch(() => {
-        setServerConfigured(false);
+        setServerConfigured(null);
       });
 
     if (initialReference) {
       setIsVerifying(true);
       fetch(`/api/paystack/verify/${encodeURIComponent(initialReference)}`)
         .then(async (res) => {
+          const isJson = res.headers.get('content-type')?.includes('application/json');
+          if (!isJson) return;
           const data = (await res.json()) as VerifyResult & { error?: string };
           if (!res.ok) {
             setErrorMsg(data.error || 'Verification failed.');
@@ -169,6 +175,13 @@ export function PaystackCheckoutModal({
     setErrorMsg(null);
     try {
       const res = await fetch(`/api/paystack/verify/${encodeURIComponent(ref)}`);
+      const isJson = res.headers.get('content-type')?.includes('application/json');
+      if (!isJson) {
+        setPopupNote(
+          'Payment receipt status is verified directly by the backend server or Paystack dashboard.'
+        );
+        return;
+      }
       const data = (await res.json()) as VerifyResult & { error?: string };
       if (!res.ok) {
         setErrorMsg(data.error || 'Verification failed.');
@@ -221,6 +234,79 @@ export function PaystackCheckoutModal({
     }
   };
 
+  const handleStaticFallback = (): boolean => {
+    const vehicleTitle = `${activeCar.year} ${activeCar.make} ${activeCar.model} ${activeCar.trim}`;
+    const formatted = `${fx.symbol}${convertedAmount.toLocaleString()}`;
+
+    if (paymentMethod === 'wire') {
+      const wireRef = `MCH_WIRE_${Math.random().toString(16).slice(2, 14).toUpperCase()}`;
+      setInitResult({
+        mode: 'wire_invoice',
+        paymentMethod: 'wire',
+        reference: wireRef,
+        vehicleTitle,
+        stockCode: activeCar.stockCode,
+        amountFormatted: formatted,
+        currency,
+        wireRail: 'International SWIFT / ACH / Faster Payments / SEPA',
+        notice:
+          'Use this Proforma Wire Reference with our sales desk to receive signed bank coordinates in your chosen currency.',
+      });
+      return true;
+    }
+
+    const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY?.trim();
+    if (publicKey) {
+      const clientRef = `MCH_PS_${Date.now().toString(36).toUpperCase()}`;
+      setInitResult({
+        mode: 'live',
+        paymentMethod: 'card',
+        reference: clientRef,
+        vehicleTitle,
+        stockCode: activeCar.stockCode,
+        amountFormatted: formatted,
+        currency,
+      });
+      try {
+        const popup = new Paystack();
+        popup.newTransaction({
+          key: publicKey,
+          email: email.trim(),
+          amount: convertedAmount * 100,
+          currency,
+          channels: ['card', 'apple_pay'],
+          reference: clientRef,
+          metadata: {
+            stockCode: activeCar.stockCode,
+            vehicleTitle,
+            buyerName: fullName.trim(),
+            buyerPhone: phone.trim(),
+          },
+          onSuccess: (tx: { reference?: string }) => {
+            setPopupNote(`Payment completed (Ref: ${tx?.reference || clientRef}).`);
+          },
+          onCancel: () => {
+            setPopupNote('Checkout window closed before completion.');
+          },
+          onError: (err: { message?: string }) => {
+            setErrorMsg(
+              err?.message ||
+                'Card checkout could not start in static mode. Switch to International Bank Wire above.'
+            );
+          },
+        });
+      } catch {
+        setErrorMsg('Unable to open Paystack popup. Try International Bank Wire above.');
+      }
+      return true;
+    }
+
+    setErrorMsg(
+      'Static hosting (GitHub Pages) does not run the Node payment server. Use International Bank Wire above or deploy the Node server for live Paystack API checkout.'
+    );
+    return true;
+  };
+
   const handleInitialize = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -243,6 +329,12 @@ export function PaystackCheckoutModal({
         }),
       });
 
+      const isJson = response.headers.get('content-type')?.includes('application/json');
+      if (!isJson) {
+        handleStaticFallback();
+        return;
+      }
+
       const data = (await response.json()) as InitResult & { error?: string };
       if (!response.ok) {
         setErrorMsg(data.error || 'Could not initialize Paystack checkout.');
@@ -255,7 +347,7 @@ export function PaystackCheckoutModal({
         launchPaystackPopup(data.accessCode, data.reference);
       }
     } catch {
-      setErrorMsg('Unable to reach payment server. Please check your connection and try again.');
+      handleStaticFallback();
     } finally {
       setIsSubmitting(false);
     }

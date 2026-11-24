@@ -11,7 +11,11 @@ interface CarImageProps {
 export function CarImage({ src, alt, title, className = '' }: CarImageProps) {
   const [hasError, setHasError] = useState(false);
 
-  if (hasError || !src) {
+  const resolvedSrc = src.startsWith('/src/assets/')
+    ? `${import.meta.env.BASE_URL}${src.slice(1)}`
+    : src;
+
+  if (hasError || !resolvedSrc) {
     return (
       <div
         className={`flex flex-col items-center justify-center bg-gradient-to-br from-[#23252A] via-[#18191D] to-[#0D0E11] text-[#E5E4E0] p-6 text-center ${className}`}
@@ -26,7 +30,7 @@ export function CarImage({ src, alt, title, className = '' }: CarImageProps) {
 
   return (
     <img
-      src={src}
+      src={resolvedSrc}
       alt={alt}
       referrerPolicy="no-referrer"
       onError={() => setHasError(true)}

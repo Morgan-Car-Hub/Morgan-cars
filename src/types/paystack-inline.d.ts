@@ -38,6 +38,7 @@ declare module '@paystack/inline-js' {
     firstName?: string;
     lastName?: string;
     phone?: string;
+    channels?: string[];
     metadata?: Record<string, unknown>;
     onBankTransferConfirmationPending?: () => void;
   }

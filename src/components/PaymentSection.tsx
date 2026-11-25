@@ -95,6 +95,11 @@ export function PaymentSection({ selectedCar, onInspectCar }: PaymentSectionProp
   }, [selectedCar]);
 
   useEffect(() => {
+    if (window.location.hostname.endsWith('.github.io')) {
+      setServerConfigured(false);
+      return;
+    }
+
     fetch('/api/paystack/config')
       .then(async (res) => {
         const isJson = res.headers.get('content-type')?.includes('application/json');

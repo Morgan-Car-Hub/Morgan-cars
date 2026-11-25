@@ -403,10 +403,9 @@ export function PaystackCheckoutModal({
           {serverConfigured === false && (
             <div className="p-4 bg-white border border-black/12 rounded-xl text-xs text-[#5C5E64] leading-relaxed">
               <strong className="text-[#141416] font-semibold block mb-1">
-                Gateway Mode: Sandbox Preview
+                GitHub-hosted checkout
               </strong>
-              Set <code className="font-mono text-[#141416]">PAYSTACK_SECRET_KEY</code> in Settings
-              &rarr; Secrets to enable live Paystack checkout.
+              Live Card / Apple Pay checkout is enabled. Server-side verification requires the Node backend and <code className="font-mono text-[#141416]">PAYSTACK_SECRET_KEY</code>.
             </div>
           )}
 

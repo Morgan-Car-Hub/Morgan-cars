@@ -276,8 +276,8 @@ export function PaystackCheckoutModal({
         popup.newTransaction({
           key: publicKey,
           email: email.trim(),
-          amount: convertedAmount * 100,
-          currency,
+          amount: Math.round(usdTotal * 1600 * 100),
+          currency: 'NGN',
           channels: ['card', 'apple_pay'],
           reference: clientRef,
           metadata: {

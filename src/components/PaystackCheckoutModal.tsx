@@ -276,8 +276,8 @@ export function PaystackCheckoutModal({
         popup.newTransaction({
           key: publicKey,
           email: email.trim(),
-          amount: Math.round(usdTotal * 1600 * 100),
-          currency: 'NGN',
+          amount: convertedAmount * 100,
+          currency,
           channels: ['card', 'apple_pay'],
           reference: clientRef,
           metadata: {
@@ -317,6 +317,12 @@ export function PaystackCheckoutModal({
     setPopupNote(null);
     setCopiedWire(false);
     setIsSubmitting(true);
+
+    if (window.location.hostname.endsWith('.github.io')) {
+      handleStaticFallback();
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch('/api/paystack/initialize', {

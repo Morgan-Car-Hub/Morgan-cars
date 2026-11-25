@@ -230,8 +230,8 @@ export function PaymentSection({ selectedCar, onInspectCar }: PaymentSectionProp
         popup.newTransaction({
           key: publicKey,
           email: email.trim(),
-          amount: Math.round(usdAmount * 1600 * 100),
-          currency: 'NGN',
+          amount: convertedAmount * 100,
+          currency,
           channels: ['card', 'apple_pay'],
           reference: clientRef,
           metadata: {
@@ -272,6 +272,12 @@ export function PaymentSection({ selectedCar, onInspectCar }: PaymentSectionProp
     setVerifyResult(null);
     setCopiedWire(false);
     setIsSubmitting(true);
+
+    if (window.location.hostname.endsWith('.github.io')) {
+      handleStaticFallback();
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch('/api/paystack/initialize', {

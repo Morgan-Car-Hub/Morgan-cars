@@ -619,8 +619,8 @@ export function PaymentSection({ selectedCar, onInspectCar }: PaymentSectionProp
 
                 {serverConfigured === false && (
                   <p className="text-xs text-[#5C5E64] bg-[#F8F7F4] border border-black/10 rounded-lg p-3 leading-relaxed">
-                    <strong className="text-[#141416] font-semibold">Sandbox Preview Mode:</strong>{' '}
-                    Add <code className="font-mono text-[#141416]">PAYSTACK_SECRET_KEY</code> in Settings &rarr; Secrets to enable live Paystack checkout.
+                    <strong className="text-[#141416] font-semibold">GitHub-hosted checkout:</strong>{' '}
+                    Live Card / Apple Pay checkout is enabled. Server-side payment verification requires the Node backend and <code className="font-mono text-[#141416]">PAYSTACK_SECRET_KEY</code>. 
                   </p>
                 )}
 

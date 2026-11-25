@@ -103,6 +103,9 @@ export function PaystackCheckoutModal({
     setVerifyResult(null);
     setCopiedWire(false);
 
+    if (window.location.hostname.endsWith('.github.io')) {
+      setServerConfigured(false);
+    } else {
     fetch('/api/paystack/config')
       .then(async (res) => {
         const isJson = res.headers.get('content-type')?.includes('application/json');
@@ -117,6 +120,7 @@ export function PaystackCheckoutModal({
       .catch(() => {
         setServerConfigured(null);
       });
+    }
 
     if (initialReference) {
       setIsVerifying(true);

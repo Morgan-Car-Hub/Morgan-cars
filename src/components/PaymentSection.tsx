@@ -230,8 +230,8 @@ export function PaymentSection({ selectedCar, onInspectCar }: PaymentSectionProp
         popup.newTransaction({
           key: publicKey,
           email: email.trim(),
-          amount: convertedAmount * 100,
-          currency,
+          amount: Math.round(usdAmount * 1600 * 100),
+          currency: 'NGN',
           channels: ['card', 'apple_pay'],
           reference: clientRef,
           metadata: {
